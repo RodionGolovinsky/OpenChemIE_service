@@ -13,6 +13,7 @@ Service for extracting chemical reactions and molecules from PDF documents and i
 1. Clone the repository:
 ```bash
 git clone https://github.com/RodionGolovinsky/OpenChemIE_service
+cd OpenChemIE_service
 ```
 
 2. Start the service:
