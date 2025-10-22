@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  web:
+    container_name: 'openchemie-service'
+    build: .
+    ports:
+     - "8000:80"
+    volumes:
+     - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
