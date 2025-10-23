@@ -32,7 +32,8 @@ def index():
 def load_models():
     global molscribe_model
     global openchemie_model
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
     logging.info(f"Using {device} device")
     molscribe_ckpt_path = hf_hub_download(repo_id='yujieq/MolScribe', filename='swin_base_char_aux_1m.pth')
     molscribe_model = MolScribe(molscribe_ckpt_path, device=device)
@@ -43,7 +44,7 @@ def load_models():
 async def extract_reactions_from_pdf(pdf_file: UploadFile = File(...)):
     """Extracts reactions from a PDF file."""
     if not pdf_file.filename.lower().endswith(".pdf"):
-        return JSONResponse(status_code=400, content={"error": "Файл должен быть в формате PDF"})
+        return JSONResponse(status_code=400, content={"error": "File must be a PDF"})
     
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(await pdf_file.read())
@@ -56,6 +57,7 @@ async def extract_reactions_from_pdf(pdf_file: UploadFile = File(...)):
             _clean_reaction_entities(reaction.get('conditions', []))
             _clean_reaction_entities(reaction.get('products', []))
         figure.pop('figure', None)
+    figure_results = [figure for figure in figure_results if len(figure.get('reactions', [])) > 0]
     response = ParsingResponse(response=figure_results)
     return response
 
@@ -63,14 +65,22 @@ async def extract_reactions_from_pdf(pdf_file: UploadFile = File(...)):
 @app.post("/extract_reactions_from_figure/")
 async def extract_reactions_from_figure(image: UploadFile = File(...)):
     """Extracts reactions from a PDF file."""
-        
-    figure_results = openchemie_model.extract_reactions_from_figures([image])
+    
+    contents = await image.read()
+    image_array = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
+    if image_array is None:
+        return JSONResponse(
+            status_code=400, 
+            content={"error": "Failed to decode image"}
+        )
+    figure_results = openchemie_model.extract_reactions_from_figures([image_array])
     for figure in figure_results:
         for reaction in figure.get('reactions', []):
             _clean_reaction_entities(reaction.get('reactants', []))
             _clean_reaction_entities(reaction.get('conditions', []))
             _clean_reaction_entities(reaction.get('products', []))
         figure.pop('figure', None)
+    figure_results = [figure for figure in figure_results if len(figure.get('reactions', [])) > 0]
     response = ParsingResponse(response=figure_results)
     return response
 
@@ -79,7 +89,7 @@ async def extract_reactions_from_figure(image: UploadFile = File(...)):
 async def extract_molecules_from_pdf(pdf_file: UploadFile = File(...)):
     """Extracts molecules with identifiers from a PDF file."""
     if not pdf_file.filename.lower().endswith(".pdf"):
-        return JSONResponse(status_code=400, content={"error": "Файл должен быть в формате PDF"})
+        return JSONResponse(status_code=400, content={"error": "File must be a PDF"})
     
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             tmp.write(await pdf_file.read())
@@ -99,7 +109,14 @@ async def extract_molecules_from_pdf(pdf_file: UploadFile = File(...)):
 async def extract_molecules_from_figure(image: UploadFile = File(...)):
     """Extracts molecules with identifiers from a PDF file."""
 
-    figure_results = openchemie_model.extract_molecule_corefs_from_figures([image])
+    contents = await image.read()
+    image_array = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
+    if image_array is None:
+        return JSONResponse(
+            status_code=400, 
+            content={"error": "Failed to decode image"}
+        )   
+    figure_results = openchemie_model.extract_molecule_corefs_from_figures([image_array])
     for figure in figure_results:
         figure['bboxes'] = [
             _clean_molecule_data(bbox, False)
@@ -115,7 +132,7 @@ async def convert_image_to_smiles(image_file: UploadFile = File(...)):
     if not image_file.content_type.startswith('image/'):
         return JSONResponse(
             status_code=400, 
-            content={"error": "Файл должен быть изображением"}
+            content={"error": "File must be an image"}
         )
     
     contents = await image_file.read()
@@ -124,7 +141,7 @@ async def convert_image_to_smiles(image_file: UploadFile = File(...)):
     if image_array is None:
         return JSONResponse(
             status_code=400, 
-            content={"error": "Не удалось декодировать изображение"}
+            content={"error": "Failed to decode image"}
         )
     
     output = molscribe_model.predict_image(image_array)
