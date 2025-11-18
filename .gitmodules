@@ -1,3 +1,0 @@
-[submodule "docking/docking_py"]
-	path = docking/docking_py
-	url = git@github.com:samuelmurail/docking_py.git
