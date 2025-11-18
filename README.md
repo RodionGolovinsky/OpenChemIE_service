@@ -1,6 +1,6 @@
-# OpenChemIE Service
+# Chemical Tools Service
 
-Service for extracting chemical reactions and molecules from PDF documents and images based on OpenChemIE and MolScribe.
+Service for different chemical tools.
 
 ## Requirements
 
@@ -33,6 +33,7 @@ The service will be available at: `http://localhost:8000`
 - `POST /extract_molecules_from_pdf/` - Extract molecules from PDF
 - `POST /extract_molecules_from_figure/` - Extract molecules from image
 - `POST /convert_image_to_smiles/` - Convert image to SMILES
+- `POST /docking/` - Perform molecular docking
 
 ### Usage examples
 
@@ -57,11 +58,21 @@ curl -X POST "http://localhost:8000/convert_image_to_smiles/" \
      -F "image_file=@structure.png"
 ```
 
+#### Perform molecular docking
+```bash
+curl -X POST "http://localhost:8000/docking/?smiles=CCO&pdb_id=1hsg"
+```
+
+The docking endpoint performs molecular docking of a ligand (specified as SMILES) to a protein (specified by PDB ID). It returns:
+- **affinity**: Binding affinity results from docking
+- **visualization**: Base64-encoded HTML visualization of the docking results
+
 ## Technical Details
 
 ### Used models
 - **OpenChemIE** - for extracting chemical reactions and molecules
 - **MolScribe** - for converting images to SMILES
+- **Smina** - for molecular docking calculations
 
 ### Supported formats
 - **PDF**: .pdf files
