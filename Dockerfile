@@ -40,7 +40,7 @@ RUN conda config --remove channels defaults || true && \
     conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main || true && \
     conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r || true
 
-RUN conda install -y smina && conda clean -a -y
+RUN conda install -y smina vina && conda clean -a -y
 
 RUN wget --no-check-certificate \
     https://ccsb.scripps.edu/download/532/mgltools_x86_64Linux2_1.5.7.tar.gz && \
