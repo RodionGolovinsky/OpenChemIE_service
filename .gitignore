@@ -103,6 +103,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env-non-dev
 .venv
 env/
 venv/
