@@ -15,10 +15,12 @@ The `retrosynthesis` service is a FastAPI application that proxies requests to a
    ```
 2. Build and start the API with Docker Compose:
    ```sh
-   cd ..
-   docker compose up --build
+   1. cd ..
+   2. docker compose up --build
+   3. cd retrosynthesis/ASKCOSv2/askcos2_core
+   4. make deploy
    ```
-   The service listens on `http://localhost:8000`.
+   The service listens on `http://localhost:8001`.
 
 ### Environment variables
 `retrosynthesis/.env` is automatically loaded by Docker Compose and the application settings. Supported keys:

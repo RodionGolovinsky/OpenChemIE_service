@@ -20,6 +20,5 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./retrosynthesis/.env-non-dev
-    ports:
-      - "9000:8000"
     restart: unless-stopped
+    network_mode: host
